@@ -2,3 +2,5 @@ target/
 input.txt
 *:Zone.Identifier
 Cargo.lock
+bin/
+obj/
