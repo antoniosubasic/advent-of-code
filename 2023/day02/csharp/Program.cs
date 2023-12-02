@@ -30,13 +30,7 @@ var input = (await session.GetInputLines())
                 cubes.Add(
                     (
                         int.Parse(cubeTuple[0]),
-                        cubeTuple[1] switch
-                        {
-                            "blue" => Color.Blue,
-                            "red" => Color.Red,
-                            "green" => Color.Green,
-                            _ => throw new Exception("Unknown color")
-                        }
+                        Enum.Parse<Color>(cubeTuple[1], true)
                     )
                 );
             }
