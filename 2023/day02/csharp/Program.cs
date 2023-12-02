@@ -1,26 +1,8 @@
 ﻿using AoC.API;
 
-int Part1(Game[] input)
-{
-    var idsSum = 0;
+int Part1(Game[] input) => input.Sum(game => game.CubeSubsets.All(subset => subset.All(cube => cube.amount <= (int)cube.color)) ? game.Id : 0);
 
-    foreach (var game in input)
-    {
-        var valid = true;
-
-        foreach (var subset in game.CubeSubsets)
-        {
-            valid = subset.All(cube => cube.amount <= (int)cube.color);
-            if (!valid) { break; }
-        }
-
-        if (valid) { idsSum += game.Id; }
-    }
-
-    return idsSum;
-}
-
-int Part2(Game[] input) => input.Sum(game => game.GetPowerOf(Color.Red) * game.GetPowerOf(Color.Green) * game.GetPowerOf(Color.Blue));
+int Part2(Game[] input) => input.Sum(game => game.GetMaxNumberOfCubes(Color.Red) * game.GetMaxNumberOfCubes(Color.Green) * game.GetMaxNumberOfCubes(Color.Blue));
 
 
 var session = new Session(
@@ -71,7 +53,7 @@ Console.WriteLine(await session.SubmitAnswer(2, Part2(input)));
 
 record Game(int Id, (int amount, Color color)[][] CubeSubsets)
 {
-    public int GetPowerOf(Color color) => CubeSubsets.Max(subset => subset.Where(cube => cube.color == color).Sum(cube => cube.amount));
+    public int GetMaxNumberOfCubes(Color color) => CubeSubsets.Max(subset => subset.Sum(cube => cube.color == color ? cube.amount : 0));
 }
 
 enum Color
