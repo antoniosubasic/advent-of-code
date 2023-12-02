@@ -1,6 +1,9 @@
 target/
-input.txt
+input*
 *:Zone.Identifier
 Cargo.lock
 bin/
 obj/
+*.js
+node_modules/
+package-lock.json
