@@ -114,10 +114,10 @@ var session = new Session(
     new(File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "regex")))
 );
 
-var input = await session.GetInputLines();
+var input = await session.GetInputLinesAsync();
 
-Console.WriteLine(await session.SubmitAnswer(1, Part1(input)));
-Console.WriteLine(await session.SubmitAnswer(2, Part2(input)));
+Console.WriteLine(await session.SubmitAnswerAsync(1, Part1(input)));
+Console.WriteLine(await session.SubmitAnswerAsync(2, Part2(input)));
 
 
 class Character(Coordinate cords, char @char) : IEnumerable<Character>

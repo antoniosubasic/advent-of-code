@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AoCAPI" Version="2.1.3" />
+    <PackageReference Include="AoCAPI" Version="2.1.5" />
   </ItemGroup>
 
 </Project>
