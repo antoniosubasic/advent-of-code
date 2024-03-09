@@ -1,6 +1,8 @@
-use std::fs::File;
-use std::io::{self, BufRead};
-use std::path::Path;
+use std::{
+    fs::File,
+    io::{BufRead, BufReader},
+    path::Path,
+};
 
 fn part1(input: &Vec<String>) -> i32 {
     let mut sum = 0;
@@ -55,7 +57,9 @@ fn part2(input: &Vec<String>) -> i32 {
                     buffer.push(current_char);
 
                     if number_strings.contains(&buffer.as_str()) {
-                        numbers.push(number_strings.iter().position(|&r| r == buffer).unwrap() as i32 + 1);
+                        numbers.push(
+                            number_strings.iter().position(|&r| r == buffer).unwrap() as i32 + 1,
+                        );
                         i += j - 1;
                     }
                 }
@@ -70,9 +74,12 @@ fn part2(input: &Vec<String>) -> i32 {
 
 fn main() {
     let path = Path::new("../input.txt");
-    let file = File::open(&path).expect("Couldn't open file");
-    let reader = io::BufReader::new(file);
-    let input: Vec<String> = reader.lines().map(|line| line.unwrap()).collect();
+    let file = File::open(&path).expect("could not open file");
+    let reader = BufReader::new(file);
+    let input: Vec<String> = reader
+        .lines()
+        .map(|line| line.expect("could not read line"))
+        .collect();
 
     println!("{}", part1(&input));
     println!("{}", part2(&input));

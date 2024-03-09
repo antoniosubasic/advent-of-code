@@ -1,6 +1,4 @@
-﻿using AoC.API;
-
-int Part1(string[] input)
+﻿int Part1(string[] input)
 {
     var sum = 0;
 
@@ -53,14 +51,7 @@ int Part2(string[] input)
     return sum;
 }
 
+var input = File.ReadAllLines("../input.txt");
 
-var session = new Session(
-    File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "cookie")),
-    Directory.GetCurrentDirectory(),
-    new(File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "regex")))
-);
-
-var input = await session.GetInputLines();
-
-Console.WriteLine(await session.SubmitAnswer(1, Part1(input)));
-Console.WriteLine(await session.SubmitAnswer(2, Part2(input)));
+Console.WriteLine(Part1(input));
+Console.WriteLine(Part2(input));
