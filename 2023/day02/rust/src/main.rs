@@ -64,7 +64,9 @@ fn part2(input: &Vec<Game>) -> i32 {
     let mut sum = 0;
 
     for game in input {
-        sum += game.clone().get_max_number_of_cubes(Color::Red) * game.clone().get_max_number_of_cubes(Color::Green) * game.clone().get_max_number_of_cubes(Color::Blue);
+        sum += game.clone().get_max_number_of_cubes(Color::Red)
+            * game.clone().get_max_number_of_cubes(Color::Green)
+            * game.clone().get_max_number_of_cubes(Color::Blue);
     }
 
     sum
@@ -73,7 +75,14 @@ fn part2(input: &Vec<Game>) -> i32 {
 fn parse_line(line: &str) -> Game {
     let mut splitted = line.split(':');
 
-    let id = splitted.next().unwrap().split(' ').nth(1).unwrap().parse::<i32>().unwrap();
+    let id = splitted
+        .next()
+        .unwrap()
+        .split(' ')
+        .nth(1)
+        .unwrap()
+        .parse::<i32>()
+        .unwrap();
     let mut subsets = Vec::<Vec<(i32, Color)>>::new();
 
     for subset in splitted.next().unwrap().split(';') {

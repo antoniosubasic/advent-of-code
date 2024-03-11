@@ -1,6 +1,4 @@
-﻿using AoC.API;
-
-int Part1And2(int[][] input, int part)
+﻿int Part1And2(int[][] input, int part)
 {
     var extrapolatedValues = 0;
 
@@ -38,14 +36,7 @@ int Part1And2(int[][] input, int part)
     return extrapolatedValues;
 }
 
+var input = File.ReadAllLines("../input.txt").Select(line => line.Split(' ').Select(int.Parse).ToArray()).ToArray();
 
-var session = new Session(
-    File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "cookie")),
-    Directory.GetCurrentDirectory(),
-    new(File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "regex")))
-);
-
-var input = (await session.GetInputLinesAsync()).Select(line => line.Split(' ').Select(int.Parse).ToArray()).ToArray();
-
-Console.WriteLine(await session.SubmitAnswerAsync(1, Part1And2(input, 1)));
-Console.WriteLine(await session.SubmitAnswerAsync(2, Part1And2(input, 2)));
+Console.WriteLine(Part1And2(input, 1));
+Console.WriteLine(Part1And2(input, 2));

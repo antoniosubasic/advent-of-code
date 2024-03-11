@@ -1,6 +1,4 @@
-﻿using AoC.API;
-
-long Part1(List<Hand> input)
+﻿long Part1(List<Hand> input)
 {
     input.Sort((hand1, hand2) => hand1.CompareTo(hand2, 1));
     return input.Select((hand, index) => hand.Bid * (index + 1)).Sum();
@@ -13,16 +11,10 @@ long Part2(List<Hand> input)
 }
 
 
-var session = new Session(
-    File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "cookie")),
-    Directory.GetCurrentDirectory(),
-    new(File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "regex")))
-);
+var input = File.ReadAllLines("../input.txt").Select(line => new Hand(line.Split(' ')));
 
-var input = (await session.GetInputLinesAsync()).Select(line => new Hand(line.Split(' ')));
-
-Console.WriteLine(await session.SubmitAnswerAsync(1, Part1([.. input])));
-Console.WriteLine(await session.SubmitAnswerAsync(2, Part2([.. input])));
+Console.WriteLine(Part1([.. input]));
+Console.WriteLine(Part2([.. input]));
 
 
 class Hand(string[] hand)

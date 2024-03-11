@@ -1,6 +1,4 @@
-﻿using AoC.API;
-
-long Part1And2(Galaxy input, int expansionMultiplier)
+﻿long Part1And2(Galaxy input, int expansionMultiplier)
 {
     input.ExpandGalaxy(expansionMultiplier);
 
@@ -21,16 +19,10 @@ long Part1And2(Galaxy input, int expansionMultiplier)
 }
 
 
-var session = new Session(
-    File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "cookie")),
-    Directory.GetCurrentDirectory(),
-    new(File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "regex")))
-);
+var input = File.ReadAllLines("../input.txt");
 
-var input = await session.GetInputLinesAsync();
-
-Console.WriteLine(await session.SubmitAnswerAsync(1, Part1And2(new Galaxy(input), 2)));
-Console.WriteLine(await session.SubmitAnswerAsync(2, Part1And2(new Galaxy(input), 1_000_000)));
+Console.WriteLine(Part1And2(new Galaxy(input), 2));
+Console.WriteLine(Part1And2(new Galaxy(input), 1_000_000));
 
 
 class Galaxy

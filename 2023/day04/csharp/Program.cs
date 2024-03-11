@@ -1,6 +1,4 @@
-﻿using AoC.API;
-
-int Part1(Scratchcard[] input)
+﻿int Part1(Scratchcard[] input)
 {
     var sum = 0;
 
@@ -37,13 +35,7 @@ int Part2(Scratchcard[] input)
 }
 
 
-var session = new Session(
-    File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "cookie")),
-    Directory.GetCurrentDirectory(),
-    new(File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "regex")))
-);
-
-var input = (await session.GetInputLinesAsync())
+var input = File.ReadAllLines("../input.txt")
     .Select(line =>
     {
         var split = line.Split(" | ");
@@ -58,8 +50,8 @@ var input = (await session.GetInputLinesAsync())
         return new Scratchcard(id, winningNumbers, myNumbers);
     }).ToArray();
 
-Console.WriteLine(await session.SubmitAnswerAsync(1, Part1(input)));
-Console.WriteLine(await session.SubmitAnswerAsync(2, Part2(input)));
+Console.WriteLine(Part1(input));
+Console.WriteLine(Part2(input));
 
 
 struct Scratchcard(int id, int[] winningNumbers, int[] myNumbers)

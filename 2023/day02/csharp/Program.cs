@@ -1,17 +1,9 @@
-﻿using AoC.API;
-
-int Part1(Game[] input) => input.Sum(game => game.CubeSubsets.All(subset => subset.All(cube => cube.amount <= (int)cube.color)) ? game.Id : 0);
+﻿int Part1(Game[] input) => input.Sum(game => game.CubeSubsets.All(subset => subset.All(cube => cube.amount <= (int)cube.color)) ? game.Id : 0);
 
 int Part2(Game[] input) => input.Sum(game => game.GetMaxNumberOfCubes(Color.Red) * game.GetMaxNumberOfCubes(Color.Green) * game.GetMaxNumberOfCubes(Color.Blue));
 
 
-var session = new Session(
-    File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "cookie")),
-    Directory.GetCurrentDirectory(),
-    new(File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "regex")))
-);
-
-var input = (await session.GetInputLines())
+var input = File.ReadAllLines("../input.txt")
     .Select(line =>
     {
         var splitted = line.Split(':');
@@ -41,8 +33,8 @@ var input = (await session.GetInputLines())
         return new Game(game, subsets.ToArray());
     }).ToArray();
 
-Console.WriteLine(await session.SubmitAnswer(1, Part1(input)));
-Console.WriteLine(await session.SubmitAnswer(2, Part2(input)));
+Console.WriteLine(Part1(input));
+Console.WriteLine(Part2(input));
 
 
 record Game(int Id, (int amount, Color color)[][] CubeSubsets)

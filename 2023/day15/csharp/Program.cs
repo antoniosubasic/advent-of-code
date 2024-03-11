@@ -1,6 +1,4 @@
-﻿using AoC.API;
-
-int Part1(Lens[] input) => input.Sum(lens => lens.GetHash());
+﻿int Part1(Lens[] input) => input.Sum(lens => lens.GetHash());
 
 int Part2(Lens[] input)
 {
@@ -56,16 +54,10 @@ int Part2(Lens[] input)
 }
 
 
-var session = new Session(
-    File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "cookie")),
-    Directory.GetCurrentDirectory(),
-    new(File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "regex")))
-);
+var input = File.ReadAllText("../input.txt").Split(',').Select(box => new Lens(box)).ToArray();
 
-var input = (await session.GetInputTextAsync()).Split(',').Select(box => new Lens(box)).ToArray();
-
-Console.WriteLine(await session.SubmitAnswerAsync(1, Part1(input)));
-Console.WriteLine(await session.SubmitAnswerAsync(2, Part2(input)));
+Console.WriteLine(Part1(input));
+Console.WriteLine(Part2(input));
 
 
 class Lens

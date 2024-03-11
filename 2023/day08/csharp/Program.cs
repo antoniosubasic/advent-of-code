@@ -1,6 +1,4 @@
-﻿using AoC.API;
-
-int Part1(Network input)
+﻿int Part1(Network input)
 {
     int steps;
 
@@ -57,17 +55,11 @@ long GCD(long a, long b)
 }
 
 
-var session = new Session(
-    File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "cookie")),
-    Directory.GetCurrentDirectory(),
-    new(File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "regex")))
-);
-
-var rawInput = await session.GetInputLinesAsync();
+var rawInput = File.ReadAllLines("../input.txt");
 var input = new Network(rawInput.First(), rawInput[2..]);
 
-Console.WriteLine(await session.SubmitAnswerAsync(1, Part1(input)));
-Console.WriteLine(await session.SubmitAnswerAsync(2, Part2(input)));
+Console.WriteLine(Part1(input));
+Console.WriteLine(Part2(input));
 
 
 class Network

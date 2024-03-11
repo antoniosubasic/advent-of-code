@@ -1,6 +1,4 @@
-﻿using AoC.API;
-
-int Part1(Tile[][] input, Coordinate start, out Node root)
+﻿int Part1(Tile[][] input, Coordinate start, out Node root)
 {
     var visited = new HashSet<Coordinate>() { start };
 
@@ -85,14 +83,8 @@ int Part2(Tile[][] input, Node root)
 }
 
 
-var session = new Session(
-    File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "cookie")),
-    Directory.GetCurrentDirectory(),
-    new(File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "regex")))
-);
-
 Coordinate? start = null;
-var input = (await session.GetInputLinesAsync()).Select((line, y) => line.ToCharArray()
+var input = File.ReadAllLines("../input.txt").Select((line, y) => line.ToCharArray()
     .Select((tile, x) =>
     {
         var coordinate = new Coordinate(x, y);
@@ -112,8 +104,8 @@ var input = (await session.GetInputLinesAsync()).Select((line, y) => line.ToChar
     }).ToArray()
 ).ToArray();
 
-Console.WriteLine(await session.SubmitAnswerAsync(1, Part1(input, start ?? throw new Exception("start not found"), out var root)));
-Console.WriteLine(await session.SubmitAnswerAsync(2, Part2(input, root)));
+Console.WriteLine(Part1(input, start ?? throw new Exception("start not found"), out var root));
+Console.WriteLine(Part2(input, root));
 
 
 public class Node(Tile tile, Node? parent = null)

@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Text;
 using System.Text.RegularExpressions;
-using AoC.API;
 
 int Part1(string[] input)
 {
@@ -108,16 +107,10 @@ int Part2(string[] input)
 }
 
 
-var session = new Session(
-    File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "cookie")),
-    Directory.GetCurrentDirectory(),
-    new(File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "regex")))
-);
+var input = File.ReadAllLines("../input.txt");
 
-var input = await session.GetInputLinesAsync();
-
-Console.WriteLine(await session.SubmitAnswerAsync(1, Part1(input)));
-Console.WriteLine(await session.SubmitAnswerAsync(2, Part2(input)));
+Console.WriteLine(Part1(input));
+Console.WriteLine(Part2(input));
 
 
 class Character(Coordinate cords, char @char) : IEnumerable<Character>
