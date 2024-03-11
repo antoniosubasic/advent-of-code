@@ -1,6 +1,4 @@
-﻿using AoC.API;
-
-int Part1((string name, string checksum)[] input)
+﻿int Part1((string name, string checksum)[] input)
 {
     var realRoomSectorIdSum = 0;
 
@@ -40,14 +38,7 @@ int Part2((string name, string checksum)[] input)
     throw new Exception("\"North Pole object storage\" could not be found");
 }
 
+var input = File.ReadAllLines("../input.txt").Select(line => (line[..line.LastIndexOf('-')], line[(line.LastIndexOf('-') + 1)..].TrimEnd(']'))).ToArray();
 
-var session = new Session(
-    File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "cookie")),
-    Directory.GetCurrentDirectory(),
-    new(File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "regex")))
-);
-
-var input = (await session.GetInputLinesAsync()).Select(line => (line[..line.LastIndexOf('-')], line[(line.LastIndexOf('-') + 1)..].TrimEnd(']'))).ToArray();
-
-Console.WriteLine(await session.SubmitAnswerAsync(1, Part1(input)));
-Console.WriteLine(await session.SubmitAnswerAsync(2, Part2(input)));
+Console.WriteLine(Part1(input));
+Console.WriteLine(Part2(input));

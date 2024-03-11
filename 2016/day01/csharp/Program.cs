@@ -1,6 +1,4 @@
-﻿using AoC.API;
-
-int Part1((char direction, int blocks)[] input)
+﻿int Part1((char direction, int blocks)[] input)
 {
     var direction = 0;
     int x = 0, y = 0;
@@ -64,14 +62,7 @@ int Part2((char direction, int blocks)[] input)
     throw new Exception("No location visited twice");
 }
 
+var input = File.ReadAllText("../input.txt").Split(", ").Select(instruction => (instruction[0], int.Parse(instruction[1..]))).ToArray();
 
-var session = new Session(
-    File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "cookie")),
-    Directory.GetCurrentDirectory(),
-    new(File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "regex")))
-);
-
-var input = (await session.GetInputTextAsync()).Split(", ").Select(instruction => (instruction[0], int.Parse(instruction[1..]))).ToArray();
-
-Console.WriteLine(await session.SubmitAnswerAsync(1, Part1(input)));
-Console.WriteLine(await session.SubmitAnswerAsync(2, Part2(input)));
+Console.WriteLine(Part1(input));
+Console.WriteLine(Part2(input));

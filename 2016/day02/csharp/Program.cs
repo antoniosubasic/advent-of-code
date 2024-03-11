@@ -1,6 +1,4 @@
-﻿using AoC.API;
-
-string Part1(Direction[][] input)
+﻿string Part1(Direction[][] input)
 {
     var keypad = new Keypad([['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9']], 1, 1);
     return new string(input.Select(keypad.EvaluateDirections).ToArray());
@@ -13,13 +11,7 @@ string Part2(Direction[][] input)
 }
 
 
-var session = new Session(
-    File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "cookie")),
-    Directory.GetCurrentDirectory(),
-    new(File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "regex")))
-);
-
-var input = (await session.GetInputLinesAsync()).Select(line => line.Select(c => c switch
+var input = File.ReadAllLines("../input.txt").Select(line => line.Select(c => c switch
     {
         'U' => Direction.Up,
         'R' => Direction.Right,
@@ -28,8 +20,8 @@ var input = (await session.GetInputLinesAsync()).Select(line => line.Select(c =>
         _ => throw new Exception("Invalid direction")
     }).ToArray()).ToArray();
 
-Console.WriteLine(await session.SubmitAnswerAsync(1, Part1(input)));
-Console.WriteLine(await session.SubmitAnswerAsync(2, Part2(input)));
+Console.WriteLine(Part1(input));
+Console.WriteLine(Part2(input));
 
 
 enum Direction
