@@ -4,14 +4,12 @@ use std::collections::HashMap;
 use std::error::Error;
 
 pub struct Session {
-    pub cookie: String,
-    pub year: i32,
-    pub day: i32,
+    cookie: String,
 }
 
 impl Session {
-    pub fn new(cookie: String, year: i32, day: i32) -> Self {
-        Self { cookie, year, day }
+    pub fn new(cookie: String) -> Self {
+        Self { cookie }
     }
 
     async fn send_request(
@@ -39,14 +37,11 @@ impl Session {
         response.text().await
     }
 
-    pub async fn get_input_text(&self) -> Result<String, Box<dyn Error>> {
+    pub async fn get_input_text(&self, year: u32, day: u32) -> Result<String, Box<dyn Error>> {
         let response = self
             .send_request(
                 reqwest::Method::GET,
-                &format!(
-                    "https://adventofcode.com/{}/day/{}/input",
-                    self.year, self.day
-                ),
+                &format!("https://adventofcode.com/{}/day/{}/input", year, day),
                 None,
                 None,
             )
@@ -55,14 +50,17 @@ impl Session {
         Ok(response.trim_end().to_string())
     }
 
-    pub async fn submit_answer(&self, part: i32, answer: &str) -> Result<String, Box<dyn Error>> {
+    pub async fn submit_answer(
+        &self,
+        year: u32,
+        day: u32,
+        part: i32,
+        answer: &str,
+    ) -> Result<String, Box<dyn Error>> {
         let response = self
             .send_request(
                 reqwest::Method::POST,
-                &format!(
-                    "https://adventofcode.com/{}/day/{}/answer",
-                    self.year, self.day
-                ),
+                &format!("https://adventofcode.com/{}/day/{}/answer", year, day),
                 Some(
                     [("Content-Type", "application/x-www-form-urlencoded")]
                         .iter()
@@ -81,7 +79,7 @@ impl Session {
             let day_response = self
                 .send_request(
                     reqwest::Method::GET,
-                    &format!("https://adventofcode.com/{}/day/{}", self.year, self.day),
+                    &format!("https://adventofcode.com/{}/day/{}", year, day),
                     None,
                     None,
                 )
