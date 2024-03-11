@@ -1,6 +1,4 @@
-﻿using AoC.API;
-
-ushort Part1(Instruction[] input) => new Circuit(input).GetValue("a");
+﻿ushort Part1(Instruction[] input) => new Circuit(input).GetValue("a");
 
 ushort Part2(Instruction[] input, ushort valueToOverrideB)
 {
@@ -16,13 +14,7 @@ ushort Part2(Instruction[] input, ushort valueToOverrideB)
 }
 
 
-var session = new Session(
-    File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "cookie")),
-    Directory.GetCurrentDirectory(),
-    new(File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".aoc", "regex")))
-);
-
-var input = (await session.GetInputLinesAsync())
+var input = File.ReadAllLines("../input.txt")
     .Select(line =>
     {
         var split = line.Split(' ');
@@ -48,8 +40,8 @@ var input = (await session.GetInputLinesAsync())
 
 var part1WireA = Part1(input);
 var part2WireA = Part2(input, part1WireA);
-Console.WriteLine(await session.SubmitAnswerAsync(1, part1WireA));
-Console.WriteLine(await session.SubmitAnswerAsync(2, part2WireA));
+Console.WriteLine(part1WireA);
+Console.WriteLine(part2WireA);
 
 
 record Instruction((string first, string? second) Operands, Operation Operation, string Destination);
