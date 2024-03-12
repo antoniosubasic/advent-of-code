@@ -79,6 +79,7 @@ impl Language {
             ],
             "rust" => vec![
                 "run".to_string(),
+                "--release".to_string(),
                 "--quiet".to_string(),
                 "--manifest-path".to_string(),
                 directory
