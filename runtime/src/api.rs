@@ -37,7 +37,7 @@ impl Session {
         response.text().await
     }
 
-    pub async fn get_input_text(&self, year: u32, day: u32) -> Result<String, Box<dyn Error>> {
+    pub async fn get_input_text(&self, year: u16, day: u8) -> Result<String, Box<dyn Error>> {
         let response = self
             .send_request(
                 reqwest::Method::GET,
@@ -52,9 +52,9 @@ impl Session {
 
     pub async fn submit_answer(
         &self,
-        year: u32,
-        day: u32,
-        part: i32,
+        year: u16,
+        day: u8,
+        part: u8,
         answer: &str,
     ) -> Result<String, Box<dyn Error>> {
         let response = self

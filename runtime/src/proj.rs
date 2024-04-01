@@ -11,7 +11,7 @@ pub struct Language {
 }
 
 impl Language {
-    pub fn new(name: &String) -> Self {
+    pub fn new(name: String) -> Self {
         let extension = match name.as_str() {
             "csharp" => "cs",
             "rust" => "rs",
@@ -99,15 +99,15 @@ impl Language {
 }
 
 pub struct Project {
-    pub year: u32,
-    pub day: u32,
+    pub year: u16,
+    pub day: u8,
     language: Language,
     pub directory: PathBuf,
     session: Session,
 }
 
 impl Project {
-    pub fn new(directory: PathBuf, year: u32, day: u32, language: &String, cookie: String) -> Self {
+    pub fn new(directory: PathBuf, year: u16, day: u8, language: String, cookie: String) -> Self {
         Self {
             year,
             day,
