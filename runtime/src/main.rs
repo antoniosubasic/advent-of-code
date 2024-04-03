@@ -87,6 +87,20 @@ async fn main() {
                 );
             }
         }
+        "code" => {
+            if let Err(error) = project.open() {
+                println!("{}", error);
+            }
+        }
+        "initc" => {
+            if let Err(error) = project.create().await {
+                println!("{}", error);
+            } else {
+                if let Err(error) = project.open() {
+                    println!("{}", error);
+                }
+            }
+        }
         _ => {
             panic!("invalid command");
         }

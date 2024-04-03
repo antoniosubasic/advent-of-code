@@ -218,4 +218,24 @@ impl Project {
             }
         }
     }
+
+    pub fn open(&self) -> Result<(), Box<dyn std::error::Error>> {
+        let language_directory = &self.directory.join(&self.language.name);
+
+        if !language_directory.exists() {
+            Err("project does not exist".into())
+        } else {
+            let status = Command::new("code")
+                .arg(&self.directory.join(&self.language.name))
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .status()?;
+
+            if !status.success() {
+                Err("failed to open project".into())
+            } else {
+                Ok(())
+            }
+        }
+    }
 }
