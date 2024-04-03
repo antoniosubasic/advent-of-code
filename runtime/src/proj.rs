@@ -1,9 +1,11 @@
-use crate::api::Session;
+use colored::*;
 use std::{
     fs,
     path::{Path, PathBuf},
     process::{Command, Stdio},
 };
+
+use crate::api::Session;
 
 pub struct Language {
     pub name: String,
@@ -65,7 +67,6 @@ impl Language {
                 "-q".to_string(),
                 directory.to_str().unwrap().to_string(),
             ],
-            "python" => vec![],
             _ => panic!("invalid language"),
         }
     }
@@ -156,9 +157,7 @@ impl Project {
         }
     }
 
-    pub async fn execute(
-        &self,
-    ) -> Result<((bool, String), (bool, String)), Box<dyn std::error::Error>> {
+    pub async fn execute(&self) -> Result<String, Box<dyn std::error::Error>> {
         let input_file = self.directory.join("input.txt");
 
         if !input_file.exists() {
@@ -166,56 +165,60 @@ impl Project {
             fs::write(&input_file, input)?;
         }
 
-        let command = Command::new(self.language.get_command())
+        let run_command = Command::new(self.language.get_command())
             .args(self.language.get_run_arguments(&self.directory))
             .current_dir(self.directory.join(&self.language.name))
             .output()?;
 
-        if !command.status.success() {
-            Err(format!(
-                "failed to run project: {}",
-                String::from_utf8_lossy(&command.stderr)
-            )
-            .into())
+        if !run_command.status.success() {
+            Err(format!("failed to run project: {}", String::from_utf8_lossy(&run_command.stderr)).into())
         } else {
-            let output = String::from_utf8_lossy(&command.stdout);
-            let part1 = output.lines().nth(0).unwrap().to_string();
-            let part2 = output.lines().nth(1).unwrap().to_string();
+            let run_command_output = String::from_utf8_lossy(&run_command.stdout);
+            let part1 = run_command_output.lines().nth(0).unwrap().to_string();
+            let part2 = run_command_output.lines().nth(1).unwrap().to_string();
 
-            let solution = self.directory.join("solution.txt");
+            let solution_file = self.directory.join("solution.txt");
+            let part1_correct: bool;
+            let part2_correct: bool;
 
-            if !solution.exists() {
-                let solution_part1 = self
+            if !solution_file.exists() {
+                let part1_correct_result = self
                     .session
                     .submit_answer(self.year, self.day, 1, &part1)
-                    .await
-                    .unwrap();
+                    .await;
 
-                let solution_part2 = self
-                    .session
-                    .submit_answer(self.year, self.day, 2, &part2)
-                    .await
-                    .unwrap();
-
-                if solution_part1 == "True" && solution_part2 == "True" {
-                    std::fs::write(&solution, format!("{}\n{}", part1, part2))?;
+                if let Err(part1_error) = part1_correct_result {
+                    return Err(part1_error.into());
+                } else {
+                    part1_correct = part1_correct_result.unwrap();
                 }
 
-                Ok((
-                    (solution_part1 == "True", part1),
-                    (solution_part2 == "True", part2),
-                ))
+                let part2_correct_result = self
+                    .session
+                    .submit_answer(self.year, self.day, 2, &part2)
+                    .await;
+
+                if let Err(part2_error) = part2_correct_result {
+                    return Err(part2_error.into());
+                } else {
+                    part2_correct = part2_correct_result.unwrap();
+                }
+
+                if part1_correct && part2_correct {
+                    std::fs::write(&solution_file, format!("{}\n{}", part1, part2))?;
+                }
             } else {
-                let solution = std::fs::read_to_string(&solution)?;
+                let solution = std::fs::read_to_string(&solution_file)?;
 
-                let solution_part1 = solution.lines().nth(0).unwrap();
-                let solution_part2 = solution.lines().nth(1).unwrap();
-
-                Ok((
-                    (solution_part1 == part1, part1),
-                    (solution_part2 == part2, part2),
-                ))
+                part1_correct = part1 == solution.lines().nth(0).unwrap();
+                part2_correct = part2 == solution.lines().nth(1).unwrap();
             }
+
+            Ok(format!(
+                "{}\n{}",
+                if part1_correct { part1.green() } else { part1.red() },
+                if part2_correct { part2.green() } else { part2.red() }
+            ))
         }
     }
 

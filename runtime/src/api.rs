@@ -56,25 +56,19 @@ impl Session {
         day: u8,
         part: u8,
         answer: &str,
-    ) -> Result<String, Box<dyn Error>> {
+    ) -> Result<bool, Box<dyn Error>> {
         let response = self
             .send_request(
                 reqwest::Method::POST,
                 &format!("https://adventofcode.com/{}/day/{}/answer", year, day),
-                Some(
-                    [("Content-Type", "application/x-www-form-urlencoded")]
-                        .iter()
-                        .cloned()
-                        .collect(),
-                ),
+                Some([("Content-Type", "application/x-www-form-urlencoded")].iter().cloned().collect()),
                 Some(format!("level={}&answer={}", part, answer).into()),
             )
             .await?;
 
         if response.contains("That's the right answer!") {
-            Ok("True".to_string())
-        } else if response
-            .contains("You don't seem to be solving the right level.  Did you already complete it?")
+            Ok(true)
+        } else if response.contains("You don't seem to be solving the right level.  Did you already complete it?")
         {
             let day_response = self
                 .send_request(
@@ -84,8 +78,8 @@ impl Session {
                     None,
                 )
                 .await?;
-            let puzzle_answer_regex =
-                Regex::new(r#"<p>Your puzzle answer was <code>(?<answer>.*?)</code>.</p>"#)?;
+
+            let puzzle_answer_regex = Regex::new(r#"<p>Your puzzle answer was <code>(?<answer>.*?)</code>.</p>"#)?;
 
             let mut match_count = 0;
 
@@ -93,7 +87,7 @@ impl Session {
                 if match_count == part - 1 {
                     if let Some(answer_found) = capture.name("answer") {
                         if answer_found.as_str() == answer {
-                            return Ok("True".to_string());
+                            return Ok(true);
                         }
                     }
                 }
@@ -101,25 +95,13 @@ impl Session {
                 match_count += 1;
             }
 
-            Ok("False".to_string())
+            Ok(false)
         } else if response.contains("You gave an answer too recently") {
-            let time_for_answer_too_recent_regex =
-                Regex::new(r#"You have (?P<time>.*?) left to wait"#)?;
-            let match_obj = time_for_answer_too_recent_regex
-                .captures(&response)
-                .ok_or("time could not be found")?;
-            Ok(format!("cooldown left: {}", &match_obj["time"]))
-        } else if response.contains("That's not the right answer.")
-            && response.contains("before trying again.")
-        {
-            let time_for_wrong_answer_regex =
-                Regex::new(r#"wait (?P<time>.*?) before trying again"#)?;
-            let match_obj = time_for_wrong_answer_regex
-                .captures(&response)
-                .ok_or("time could not be found")?;
-            Ok(format!("False - on cooldown: {}", &match_obj["time"]))
+            let answer_too_recent_regex = Regex::new(r#"You have (?P<time>.*?) left to wait"#)?;
+            let regex_match = answer_too_recent_regex.captures(&response).ok_or("time could not be found")?;
+            Err(format!("cooldown left: {}", &regex_match["time"]).into())
         } else {
-            Ok("False".to_string())
+            Ok(false)
         }
     }
 }

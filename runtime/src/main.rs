@@ -1,9 +1,11 @@
-use colored::*;
 use regex::Regex;
 use std::{env, fs};
 use tokio;
+
 mod api;
 mod proj;
+
+use crate::proj::Project;
 
 #[tokio::main]
 async fn main() {
@@ -18,11 +20,13 @@ async fn main() {
         .unwrap_or(&"0".to_string())
         .parse::<u16>()
         .unwrap();
+
     let mut day = args
         .get(3)
         .unwrap_or(&"0".to_string())
         .parse::<u8>()
         .unwrap();
+
     let mut language = args.get(4).map(|s| s.clone()).unwrap_or("0".to_string());
 
     if year == 0 {
@@ -40,7 +44,7 @@ async fn main() {
 
     let cookie = fs::read_to_string(home_dir.join(".aoc/cookie")).expect("failed to read cookie");
 
-    let project = proj::Project::new(
+    let project = Project::new(
         home_dir
             .join("projects")
             .join("advent-of-code")
@@ -58,40 +62,6 @@ async fn main() {
                 println!("{}", error);
             }
         }
-        "run" => {
-            let execution_result = project.execute().await;
-
-            if let Err(error) = execution_result {
-                println!("{}", error);
-            } else {
-                let (part1, part2) = execution_result.unwrap();
-
-                println!(
-                    "{}: {}",
-                    if part1.0 {
-                        "part 1".green()
-                    } else {
-                        "part 1".red()
-                    },
-                    part1.1
-                );
-
-                println!(
-                    "{}: {}",
-                    if part2.0 {
-                        "part 2".green()
-                    } else {
-                        "part 2".red()
-                    },
-                    part2.1
-                );
-            }
-        }
-        "code" => {
-            if let Err(error) = project.open() {
-                println!("{}", error);
-            }
-        }
         "initc" => {
             if let Err(error) = project.create().await {
                 println!("{}", error);
@@ -99,6 +69,20 @@ async fn main() {
                 if let Err(error) = project.open() {
                     println!("{}", error);
                 }
+            }
+        }
+        "run" => {
+            let execution = project.execute().await;
+
+            if let Err(error) = execution {
+                println!("{}", error);
+            } else {
+                println!("{}", execution.unwrap());
+            }
+        }
+        "code" => {
+            if let Err(error) = project.open() {
+                println!("{}", error);
             }
         }
         _ => {
