@@ -42,7 +42,7 @@ async fn main() {
         }
     }
 
-    let cookie = fs::read_to_string(home_dir.join(".aoc/cookie")).expect("failed to read cookie");
+    let cookie = fs::read_to_string(home_dir.join(".config/aoc/cookie")).expect("failed to read cookie");
 
     let project = Project::new(
         home_dir

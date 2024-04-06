@@ -130,7 +130,7 @@ impl Project {
             let input = self.session.get_input_text(self.year, self.day).await?;
             fs::write(self.directory.join("input.txt"), input).unwrap();
 
-            let base_file = home.join(".aoc").join(self.language.get_base_file());
+            let base_file = home.join(".config/aoc").join(self.language.get_base_file());
 
             if self.language.name != "python" {
                 let status = Command::new(self.language.get_command())
