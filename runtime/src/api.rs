@@ -61,14 +61,20 @@ impl Session {
             .send_request(
                 reqwest::Method::POST,
                 &format!("https://adventofcode.com/{}/day/{}/answer", year, day),
-                Some([("Content-Type", "application/x-www-form-urlencoded")].iter().cloned().collect()),
+                Some(
+                    [("Content-Type", "application/x-www-form-urlencoded")]
+                        .iter()
+                        .cloned()
+                        .collect(),
+                ),
                 Some(format!("level={}&answer={}", part, answer).into()),
             )
             .await?;
 
         if response.contains("That's the right answer!") {
             Ok(true)
-        } else if response.contains("You don't seem to be solving the right level.  Did you already complete it?")
+        } else if response
+            .contains("You don't seem to be solving the right level.  Did you already complete it?")
         {
             let day_response = self
                 .send_request(
@@ -79,7 +85,8 @@ impl Session {
                 )
                 .await?;
 
-            let puzzle_answer_regex = Regex::new(r#"<p>Your puzzle answer was <code>(?<answer>.*?)</code>.</p>"#)?;
+            let puzzle_answer_regex =
+                Regex::new(r#"<p>Your puzzle answer was <code>(?<answer>.*?)</code>.</p>"#)?;
 
             let mut match_count = 0;
 
@@ -98,7 +105,9 @@ impl Session {
             Ok(false)
         } else if response.contains("You gave an answer too recently") {
             let answer_too_recent_regex = Regex::new(r#"You have (?P<time>.*?) left to wait"#)?;
-            let regex_match = answer_too_recent_regex.captures(&response).ok_or("time could not be found")?;
+            let regex_match = answer_too_recent_regex
+                .captures(&response)
+                .ok_or("time could not be found")?;
             Err(format!("cooldown left: {}", &regex_match["time"]).into())
         } else {
             Ok(false)
