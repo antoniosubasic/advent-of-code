@@ -13,36 +13,42 @@ async fn main() {
     let home_dir = dirs::home_dir().unwrap();
     let current_dir = env::current_dir().unwrap();
 
-    let command = args.get(1).map(|s| s.clone()).unwrap_or("run".to_string());
+    let year: u16;
+    let day: u8;
+    let language: String;
 
-    let mut year = args
-        .get(2)
-        .unwrap_or(&"0".to_string())
-        .parse::<u16>()
-        .unwrap();
-
-    let mut day = args
-        .get(3)
-        .unwrap_or(&"0".to_string())
-        .parse::<u8>()
-        .unwrap();
-
-    let mut language = args.get(4).map(|s| s.clone()).unwrap_or("0".to_string());
-
-    if year == 0 {
+    if let Some(y) = args.get(2) {
+        year = y.parse().unwrap();
+        day = args.get(3).expect("no day argument").parse().unwrap();
+        language = args.get(4).expect("no language argument").to_string();
+    } else {
         if let Some(captures) = Regex::new(r"advent-of-code\/(\d{4})\/day(\d{2})\/([a-z]+)$")
             .unwrap()
             .captures(current_dir.to_str().unwrap())
         {
-            year = captures.get(1).unwrap().as_str().parse().unwrap();
-            day = captures.get(2).unwrap().as_str().parse().unwrap();
-            language = captures.get(3).unwrap().as_str().to_string();
+            year = captures
+                .get(1)
+                .expect("failed to get year")
+                .as_str()
+                .parse()
+                .unwrap();
+
+            day = captures
+                .get(2)
+                .expect("failed to get day")
+                .as_str()
+                .parse()
+                .unwrap();
+
+            language = captures
+                .get(3)
+                .expect("failed to get language")
+                .as_str()
+                .to_string();
         } else {
             panic!("invalid arguments provided");
         }
     }
-
-    let cookie = fs::read_to_string(home_dir.join(".config/aoc/cookie")).expect("failed to read cookie");
 
     let project = Project::new(
         home_dir
@@ -53,37 +59,25 @@ async fn main() {
         year,
         day,
         language,
-        cookie,
+        fs::read_to_string(home_dir.join(".config/aoc/cookie")).expect("failed to read cookie"),
     );
 
-    match command.as_str() {
+    match args.get(1).unwrap_or(&"run".to_string()).as_str() {
         "init" => {
-            if let Err(error) = project.create().await {
-                println!("{}", error);
-            }
+            project.create().await.expect("project creation failed");
         }
         "initc" => {
-            if let Err(error) = project.create().await {
-                println!("{}", error);
-            } else {
-                if let Err(error) = project.open() {
-                    println!("{}", error);
-                }
-            }
+            project.create().await.expect("project creation failed");
+            project.open().expect("opening project failed");
         }
         "run" => {
-            let execution = project.execute().await;
-
-            if let Err(error) = execution {
-                println!("{}", error);
-            } else {
-                println!("{}", execution.unwrap());
-            }
+            println!(
+                "{}",
+                project.execute().await.expect("project execution failed")
+            );
         }
         "code" => {
-            if let Err(error) = project.open() {
-                println!("{}", error);
-            }
+            project.open().expect("opening project failed");
         }
         _ => {
             panic!("invalid command");
