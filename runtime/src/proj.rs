@@ -103,6 +103,7 @@ impl Language {
             "csharp" => vec!["run", "--project", &self.directory.to_str().unwrap()],
             "rust" => vec![
                 "run",
+                "-q",
                 "--release",
                 "--manifest-path",
                 rust_dir.to_str().unwrap(),
