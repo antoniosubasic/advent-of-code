@@ -254,15 +254,20 @@ impl Project {
             }
 
             let run_command_stderr = String::from_utf8_lossy(&output.stderr);
-            let execution_time: Vec<&str> = run_command_stderr
-                .lines()
-                .nth(2)
-                .unwrap()
-                .split(' ')
-                .nth(1)
-                .unwrap()
-                .split(':')
-                .collect();
+            let execution_time = std::time::Duration::from_secs_f32(
+                run_command_stderr
+                    .lines()
+                    .nth(0)
+                    .unwrap()
+                    .split(' ')
+                    .nth(1)
+                    .unwrap()
+                    .parse::<f32>()
+                    .unwrap(),
+            );
+
+            let minutes = execution_time.as_secs() / 60;
+            let seconds = execution_time.as_millis() as f64 / 1000.0;
 
             Ok(format!(
                 "{}\n{}\n\n{}",
@@ -276,12 +281,11 @@ impl Project {
                 } else {
                     part2.red()
                 },
-                format!(
-                    "{}h {}m {}s",
-                    execution_time.get(2).unwrap_or(&"0"),
-                    execution_time.get(1).unwrap_or(&"0"),
-                    execution_time.get(0).unwrap_or(&"0")
-                )
+                if minutes == 0 {
+                    format!("{:.2}s", seconds)
+                } else {
+                    format!("{}m{:.2}s", minutes, seconds)
+                }
             ))
         }
     }
