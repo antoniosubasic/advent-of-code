@@ -136,6 +136,13 @@ impl Project {
         }
     }
 
+    pub async fn create_input(&self) -> Result<(), Box<dyn std::error::Error>> {
+        let input = self.session.get_input_text(self.year, self.day).await?;
+        fs::write(self.directory.join("input.txt"), input)?;
+
+        Ok(())
+    }
+
     pub async fn create(&self) -> Result<(), Box<dyn std::error::Error>> {
         let home = dirs::home_dir().unwrap();
 
@@ -144,8 +151,7 @@ impl Project {
         } else {
             fs::create_dir_all(&self.directory).unwrap();
 
-            let input = self.session.get_input_text(self.year, self.day).await?;
-            fs::write(self.directory.join("input.txt"), input).unwrap();
+            self.create_input().await.expect("failed to get input");
 
             let base_file = home
                 .join(".config/aoc")
@@ -176,12 +182,7 @@ impl Project {
     }
 
     pub async fn execute(&self) -> Result<String, Box<dyn std::error::Error>> {
-        let input_file = self.directory.join("input.txt");
-
-        if !input_file.exists() {
-            let input = self.session.get_input_text(self.year, self.day).await?;
-            fs::write(&input_file, input)?;
-        }
+        self.create_input().await.expect("failed to get input");
 
         if let Some(compile_command) = self.language.compile_command() {
             let compile_command = Command::new(&compile_command[0])

@@ -9,7 +9,9 @@ pub struct Session {
 
 impl Session {
     pub fn new(cookie: String) -> Self {
-        Self { cookie }
+        Self {
+            cookie: cookie.trim_end_matches('\n').to_string(),
+        }
     }
 
     async fn send_request(
@@ -22,7 +24,10 @@ impl Session {
         let client = Client::new();
         let mut request = client.request(method, uri);
 
-        request = request.header("Cookie", format!("session={}", self.cookie));
+        request = request.header(
+            "Cookie",
+            format!("session={}", self.cookie),
+        );
         if let Some(headers) = headers {
             for (key, value) in headers {
                 request = request.header(key, value);
