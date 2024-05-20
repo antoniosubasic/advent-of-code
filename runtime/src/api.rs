@@ -1,7 +1,9 @@
+use anyhow::{Error, Result};
 use regex::Regex;
 use reqwest::Client;
-use std::collections::HashMap;
-use std::error::Error;
+use std::{collections::HashMap, path::PathBuf};
+
+use crate::PuzzleData;
 
 pub struct Session {
     cookie: String,
@@ -20,14 +22,11 @@ impl Session {
         uri: &str,
         headers: Option<HashMap<&str, &str>>,
         content: Option<reqwest::Body>,
-    ) -> Result<String, reqwest::Error> {
+    ) -> Result<String, Error> {
         let client = Client::new();
         let mut request = client.request(method, uri);
 
-        request = request.header(
-            "Cookie",
-            format!("session={}", self.cookie),
-        );
+        request = request.header("Cookie", format!("session={}", self.cookie));
         if let Some(headers) = headers {
             for (key, value) in headers {
                 request = request.header(key, value);
@@ -38,11 +37,10 @@ impl Session {
             request = request.body(content);
         }
 
-        let response = request.send().await?;
-        response.text().await
+        Ok(request.send().await?.text().await?)
     }
 
-    pub async fn get_input_text(&self, year: u16, day: u8) -> Result<String, Box<dyn Error>> {
+    pub async fn get_input_text(&self, year: u16, day: u8) -> Result<String> {
         let response = self
             .send_request(
                 reqwest::Method::GET,
@@ -55,13 +53,7 @@ impl Session {
         Ok(response.trim_end().to_string())
     }
 
-    pub async fn submit_answer(
-        &self,
-        year: u16,
-        day: u8,
-        part: u8,
-        answer: &str,
-    ) -> Result<bool, Box<dyn Error>> {
+    pub async fn submit_answer(&self, year: u16, day: u8, part: u8, answer: &str) -> Result<bool> {
         let response = self
             .send_request(
                 reqwest::Method::POST,
@@ -112,10 +104,61 @@ impl Session {
             let answer_too_recent_regex = Regex::new(r#"You have (?P<time>.*?) left to wait"#)?;
             let regex_match = answer_too_recent_regex
                 .captures(&response)
-                .ok_or("time could not be found")?;
-            Err(format!("cooldown left: {}", &regex_match["time"]).into())
+                .ok_or(Error::msg("time could not be found"))?;
+
+            Err(Error::msg(format!(
+                "cooldown left: {}",
+                &regex_match["time"]
+            )))
         } else {
             Ok(false)
         }
+    }
+
+    pub async fn ensure_input(&self, input_file: &PathBuf, puzzle_data: &PuzzleData) -> Result<()> {
+        if !input_file.exists() {
+            let parent_directory = input_file
+                .parent()
+                .ok_or(Error::msg("could not find parent"))?;
+
+            if !parent_directory.exists() {
+                std::fs::create_dir_all(parent_directory)?;
+            }
+
+            let input = self
+                .get_input_text(puzzle_data.year, puzzle_data.day)
+                .await?;
+
+            std::fs::write(input_file, input)?;
+        }
+
+        Ok(())
+    }
+
+    pub async fn evaluate_solution(
+        &self,
+        solution_file: &PathBuf,
+        year: u16,
+        day: u8,
+        solution: (&str, &str),
+    ) -> Result<(bool, bool)> {
+        Ok(if solution_file.exists() {
+            let solution_content = std::fs::read_to_string(solution_file)?;
+
+            let mut lines = solution_content.lines();
+            let part1 = lines.next().ok_or(Error::msg("part 1 not found"))?;
+            let part2 = lines.next().ok_or(Error::msg("part 2 not found"))?;
+
+            (part1 == solution.0, part2 == solution.1)
+        } else {
+            let part1_result = self.submit_answer(year, day, 1, solution.0).await?;
+            let part2_result = self.submit_answer(year, day, 2, solution.1).await?;
+
+            if part1_result && part2_result {
+                std::fs::write(solution_file, format!("{}\n{}", solution.0, solution.1))?;
+            }
+
+            (part1_result, part2_result)
+        })
     }
 }

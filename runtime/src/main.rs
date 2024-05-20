@@ -1,86 +1,186 @@
-use regex::Regex;
-use std::{env, fs};
-use tokio;
+use std::path::PathBuf;
+
+use clap::{Parser, ValueEnum};
 
 mod api;
-mod proj;
+mod puzzle;
 
-use crate::proj::Project;
+#[derive(Parser, Clone)]
+#[clap(rename_all = "kebab-case")]
+struct Args {
+    #[clap(subcommand)]
+    command: Command,
+    #[clap(flatten)]
+    puzzle: PuzzleData,
+}
 
-#[tokio::main]
-async fn main() {
-    let args: Vec<String> = env::args().collect();
-    let home_dir = dirs::home_dir().unwrap();
-    let current_dir = env::current_dir().unwrap();
+#[derive(Parser, Clone)]
+pub enum Command {
+    Init,
+    Run,
+    Open,
+}
 
-    let year: u16;
-    let day: u8;
-    let language: String;
+#[derive(Parser, Clone)]
+pub struct PuzzleData {
+    #[clap(short = 'd', long)]
+    day: u8,
+    #[clap(short = 'y', long)]
+    year: u16,
+    #[clap(short = 'l', long)]
+    language: Language,
+}
 
-    if let Some(y) = args.get(2) {
-        year = y.parse().unwrap();
-        day = args.get(3).expect("no day argument").parse().unwrap();
-        language = args.get(4).expect("no language argument").to_string();
-    } else {
-        if let Some(captures) = Regex::new(r"advent-of-code\/(\d{4})\/day(\d{2})\/([a-z]+)$")
-            .unwrap()
-            .captures(current_dir.to_str().unwrap())
-        {
-            year = captures
-                .get(1)
-                .expect("failed to get year")
-                .as_str()
-                .parse()
-                .unwrap();
+#[derive(Parser, Clone, ValueEnum)]
+pub enum Language {
+    Rust,
+    Python,
+    Csharp,
+}
 
-            day = captures
-                .get(2)
-                .expect("failed to get day")
-                .as_str()
-                .parse()
-                .unwrap();
+impl std::fmt::Display for Language {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Language::Rust => write!(f, "rust"),
+            Language::Python => write!(f, "python"),
+            Language::Csharp => write!(f, "csharp"),
+        }
+    }
+}
 
-            language = captures
-                .get(3)
-                .expect("failed to get language")
-                .as_str()
-                .to_string();
-        } else {
-            panic!("invalid arguments provided");
+impl Language {
+    fn extension(&self) -> &'static str {
+        match self {
+            Language::Rust => "rs",
+            Language::Python => "py",
+            Language::Csharp => "cs",
         }
     }
 
-    let project = Project::new(
-        home_dir
-            .join("projects")
-            .join("advent-of-code")
-            .join(year.to_string())
-            .join(format!("day{:02}", day)),
-        year,
-        day,
-        language,
-        fs::read_to_string(home_dir.join(".config/aoc/cookie")).expect("failed to read cookie"),
-    );
+    fn code_file(&self, directory: &PathBuf) -> PathBuf {
+        let relative_path = match self {
+            Language::Rust => PathBuf::from("src/main"),
+            Language::Python => PathBuf::from("main"),
+            Language::Csharp => PathBuf::from("Program"),
+        };
 
-    match args.get(1).unwrap_or(&"run".to_string()).as_str() {
-        "init" => {
-            project.create().await.expect("project creation failed");
+        directory.join(format!(
+            "{}.{}",
+            relative_path.to_str().unwrap(),
+            self.extension()
+        ))
+    }
+
+    fn command(&self) -> &'static str {
+        match self {
+            Language::Rust => "cargo",
+            Language::Python => "python3",
+            Language::Csharp => "dotnet",
         }
-        "initc" => {
-            project.create().await.expect("project creation failed");
-            project.open().expect("opening project failed");
+    }
+
+    fn init_args(&self) -> Option<Vec<&'static str>> {
+        match self {
+            Language::Rust => Some(vec!["new", "-q", "--bin"]),
+            Language::Python => None,
+            Language::Csharp => Some(vec!["new", "console", "-o"]),
         }
-        "run" => {
-            println!(
-                "{}",
-                project.execute().await.expect("project execution failed")
+    }
+
+    fn compile_args(&self) -> Option<Vec<&'static str>> {
+        match self {
+            Language::Rust => Some(vec!["build", "--release", "--manifest-path"]),
+            Language::Python => None,
+            Language::Csharp => Some(vec!["build"]),
+        }
+    }
+
+    fn run_args(&self) -> Vec<&'static str> {
+        match self {
+            Language::Rust => vec!["run", "-q", "--release", "--manifest-path"],
+            Language::Python => vec![],
+            Language::Csharp => vec!["run", "--project"],
+        }
+    }
+
+    pub fn init(&self, directory: &PathBuf) -> Vec<String> {
+        let mut args = if let Some(mut args) = self.init_args() {
+            args.insert(0, self.command());
+            args
+        } else {
+            vec!["mkdir", "-p"]
+        }
+        .iter()
+        .map(|&s| s.to_string())
+        .collect::<Vec<String>>();
+
+        args.push(directory.to_str().unwrap().to_string());
+        args
+    }
+
+    pub fn compile(&self, directory: &PathBuf) -> Option<Vec<String>> {
+        if let Some(args) = self.compile_args() {
+            let mut args = args.iter().map(|&s| s.to_string()).collect::<Vec<String>>();
+
+            args.insert(0, self.command().to_string());
+            args.push(
+                match self {
+                    Language::Rust => directory.join("Cargo.toml"),
+                    _ => PathBuf::new(),
+                }
+                .to_str()
+                .unwrap()
+                .to_string(),
             );
+
+            Some(args)
+        } else {
+            None
         }
-        "code" => {
-            project.open().expect("opening project failed");
+    }
+
+    pub fn run(&self, directory: &PathBuf) -> Vec<String> {
+        let mut args = self
+            .run_args()
+            .iter()
+            .map(|&s| s.to_string())
+            .collect::<Vec<String>>();
+
+        args.insert(0, self.command().to_string());
+        args.push(
+            match self {
+                Language::Rust => directory.join("Cargo.toml"),
+                Language::Python => directory.join("main.py"),
+                Language::Csharp => directory.clone(),
+            }
+            .to_str()
+            .unwrap()
+            .to_string(),
+        );
+
+        args
+    }
+
+    pub fn open(&self) -> Vec<String> {
+        match self {
+            Language::Rust => vec!["code"],
+            Language::Python => vec!["code"],
+            Language::Csharp => vec!["code"],
         }
-        _ => {
-            panic!("invalid command");
-        }
+        .iter()
+        .map(|&s| s.to_string())
+        .collect::<Vec<String>>()
+    }
+}
+
+#[tokio::main]
+async fn main() {
+    match puzzle::Puzzle::new(&Args::parse()) {
+        Ok(puzzle) => match puzzle.execute().await {
+            Ok(Some(output)) => println!("{output}"),
+            Err(error) => eprintln!("{error}"),
+            Ok(None) => {}
+        },
+        Err(error) => eprintln!("{error}"),
     }
 }
