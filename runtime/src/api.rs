@@ -129,6 +129,10 @@ impl Session {
                 .get_input_text(puzzle_data.year, puzzle_data.day)
                 .await?;
 
+            if input == "Puzzle inputs differ by user.  Please log in to get your puzzle input." {
+                return Err(Error::msg("invalid cookie"));
+            }
+
             std::fs::write(input_file, input)?;
         }
 
