@@ -1,5 +1,12 @@
 #!/bin/bash
 
+throw() {
+    local message="$1"
+    local error_code="${2:-1}"
+    echo -e "$message" >&2
+    exit "$error_code"
+}
+
 config_path="$HOME/.config/aoc"
 
 year=""
@@ -11,43 +18,33 @@ while getopts ":y:d:l:" opt; do
     case ${opt} in
         y)
             if [[ "$year" != "" ]]; then
-                echo "year already set" >&2
-                exit 1
+                throw "year already set"
             elif [[ ! $OPTARG =~ ^[0-9]{4}$ ]]; then
-                echo "invalid year: $OPTARG" >&2
-                exit 1
+                throw "invalid year: $OPTARG"
             elif [[ $OPTARG -lt 2015 ]]; then
-                echo "year must be >= 2015" >&2
-                exit 1
+                throw "year must be >= 2015"
             elif [[ $OPTARG -gt $(date +%Y) ]]; then
-                echo "year must be <= $(date +%Y)" >&2
-                exit 1
+                throw "year must be <= $(date +%Y)"
             fi
             year="$OPTARG"
             ;;
         d)
             if [[ "$day" != "" ]]; then
-                echo "day already set" >&2
-                exit 1
+                throw "day already set"
             elif [[ ! $OPTARG =~ ^[0-9]{1,2}$ ]]; then
-                echo "invalid day: $OPTARG" >&2
-                exit 1
+                throw "invalid day: $OPTARG"
             elif [[ $OPTARG -lt 1 ]]; then
-                echo "day must be >= 1" >&2
-                exit 1
+                throw "day must be >= 1"
             elif [[ $OPTARG -gt 25 ]]; then
-                echo "day must be <= 25" >&2
-                exit 1
+                throw "day must be <= 25"
             fi
             day="$OPTARG"
             ;;
         l)
             if [[ "$language" != "" ]]; then
-                echo "language already set" >&2
-                exit 1
+                throw "language already set"
             elif [[ ! $OPTARG =~ ^[a-zA-Z]+$ ]]; then
-                echo "invalid language: $OPTARG" >&2
-                exit 1
+                throw "invalid language: $OPTARG"
             fi
             language="$OPTARG"
             ;;
@@ -55,8 +52,7 @@ while getopts ":y:d:l:" opt; do
             echo "invalid option: -$OPTARG" >&2
             ;;
         :)
-            echo "option -$OPTARG requires an argument." >&2
-            exit 1
+            throw "option -$OPTARG requires an argument."
             ;;
     esac
 done
@@ -101,8 +97,7 @@ elif [[ $path_regex_matches -eq 1 ]]; then
     path=${path/\{year\}/$year_regex_match}
     year=$year_regex_match
 else
-    echo "year not set" >&2
-    exit 1
+    throw "year not set"
 fi
 
 if [[ "$day" != "" ]]; then
@@ -116,8 +111,7 @@ elif [[ $path_regex_matches -eq 1 ]]; then
     path=$(echo "$path" | sed -E "s/\{day(:[0-9]+)?\}/$day_regex_match/")
     day=$day_regex_match
 else
-    echo "day not set" >&2
-    exit 1
+    throw "day not set"
 fi
 
 if [[ "$language" != "" ]]; then
@@ -126,11 +120,9 @@ elif [[ $path_regex_matches -eq 1 ]]; then
     path=${path/\{language\}/$language_regex_match}
     language=$language_regex_match
 else
-    echo "language not set" >&2
-    exit 1
+    throw "language not set"
 fi
 
 if [[ ! -d "$path" ]]; then
-    echo "path does not exist: $path" >&2
-    exit 1
+    throw "path does not exist: $path"
 fi
