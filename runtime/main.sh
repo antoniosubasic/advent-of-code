@@ -7,6 +7,16 @@ throw() {
     exit "$error_code"
 }
 
+fetch_input() {
+    local year="$1"
+    local day="$2"
+    local cookie="$3"
+
+    local response=$(curl -s -H "Cookie: session=${cookie}" "https://adventofcode.com/${year}/day/${day}/input")
+
+    echo "$response"
+}
+
 config_path="$HOME/.config/aoc"
 
 year=""
@@ -126,3 +136,50 @@ fi
 if [[ ! -d "$path" ]]; then
     throw "path does not exist: $path"
 fi
+
+case $mode in
+    run)
+        input_file_path="$(dirname $path)/input.txt"
+
+        if [[ ! -f "$input_file_path" ]]; then
+            cookie=$(sed 's/\n$//' "$config_path/cookie")
+
+            if [[ "$cookie" == "" ]]; then
+                throw "cookie not set"
+            else
+                input=$(fetch_input "$year" "$day" "$cookie")
+
+                if [[ "$input" == "Puzzle inputs differ by user.  Please log in to get your puzzle input." ]]; then
+                    throw "invalid cookie"
+                else
+                    echo -n "$input" > "$input_file_path"
+                fi
+            fi
+        fi
+
+        output=""
+
+        case $language in
+            csharp)
+                cd "$path"
+                command_output=$(dotnet run 2>&1)
+                status=$?
+                cd - > /dev/null
+
+                if [[ $status -ne 0 ]]; then
+                    throw "$command_output"
+                else
+                    output="$command_output"
+                fi
+                ;;
+            *)
+                throw "invalid language: $language"
+                ;;
+        esac
+
+        echo "$output"
+        ;;
+    *)
+        throw "invalid mode: $mode"
+        ;;
+esac
