@@ -143,7 +143,9 @@ while getopts ":y:d:l:" opt; do
         l)
             if [[ "$language" != "" ]]; then
                 throw "language already set"
-            elif [[ ! $OPTARG =~ ^[a-zA-Z]+$ ]]; then
+            fi
+            languages=("csharp" "python" "rust" "c")
+            if [[ ! " ${languages[@]} " =~ " $OPTARG " ]]; then
                 throw "invalid language: $OPTARG"
             fi
             language="$OPTARG"
@@ -247,37 +249,54 @@ case $mode in
             fi
         fi
 
-        output=""
+        command_output=""
+        status=0
 
+        cd "$path"
         case $language in
             csharp)
-                cd "$path"
-                command_output=$(dotnet run 2>&1)
+                command_output=$( { time -p dotnet run; } 2>&1 )
                 status=$?
-                cd - > /dev/null
-
-                if [[ $status -ne 0 ]]; then
-                    throw "$command_output"
-                else
-                    output="$command_output"
-                fi
+                ;;
+            python)
+                command_output=$( { time -p python3 main.py; } 2>&1 )
+                status=$?
+                ;;
+            rust)
+                cargo build --release --quiet
+                command_output=$( { time -p cargo run --release --quiet; } 2>&1 )
+                status=$?
+                ;;
+            c)
+                outfile=$(mktemp)
+                gcc main.c -o "$outfile"
+                command_output=$( { time -p "$outfile"; } 2>&1 )
+                status=$?
                 ;;
             *)
                 throw "invalid language: $language"
                 ;;
         esac
+        cd - > /dev/null
 
-        part1=$(echo "$output" | sed -n '1p')
-        part2=$(echo "$output" | sed -n '2p')
+        if [[ $status -ne 0 ]]; then
+            throw "$(echo "$command_output" | head -n -3)"
+        else
+            output=$(echo "$command_output" | head -n 2)
 
-        evaluate_solution "$solution_file_path" "$year" "$day" "$part1" "$part2" "$cookie"
-        evaluation=$?
+            part1=$(echo "$output" | sed -n '1p')
+            part2=$(echo "$output" | sed -n '2p')
 
-        part1_color=$([[ $evaluation -eq 1 || $evaluation -eq 3 ]] && echo $GREEN || echo $RED)
-        part2_color=$([[ $evaluation -eq 2 || $evaluation -eq 3 ]] && echo $GREEN || echo $RED)
+            evaluate_solution "$solution_file_path" "$year" "$day" "$part1" "$part2" "$cookie"
+            evaluation=$?
 
-        echo -e "${part1_color}$part1${NC}"
-        echo -e "${part2_color}$part2${NC}"
+            part1_color=$([[ $evaluation -eq 1 || $evaluation -eq 3 ]] && echo $GREEN || echo $RED)
+            part2_color=$([[ $evaluation -eq 2 || $evaluation -eq 3 ]] && echo $GREEN || echo $RED)
+
+            echo -e "${part1_color}$part1${NC}"
+            echo -e "${part2_color}$part2${NC}"
+            echo -e "\n$(echo "$command_output" | tail -n 3 | head -n 1 | cut -d ' ' -f 2)s"
+        fi
         ;;
     *)
         throw "invalid mode: $mode"
