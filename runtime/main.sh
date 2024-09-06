@@ -115,6 +115,7 @@ language=""
 mode="run"
 
 while getopts ":y:d:l:" opt; do
+    OPTARG="$(echo "$OPTARG" | sed 's/^0*//')"
     case ${opt} in
         y)
             if [[ "$year" != "" ]]; then
@@ -197,7 +198,7 @@ if [[ "$year" != "" ]]; then
     path=${path/\{year\}/$year}
 elif [[ $path_regex_matches -eq 1 ]]; then
     path=${path/\{year\}/$year_regex_match}
-    year=$year_regex_match
+    year=$(echo "$year_regex_match" | sed 's/^0*//')
 else
     throw "year not set"
 fi
@@ -211,7 +212,7 @@ if [[ "$day" != "" ]]; then
     fi
 elif [[ $path_regex_matches -eq 1 ]]; then
     path=$(echo "$path" | sed -E "s/\{day(:[0-9]+)?\}/$day_regex_match/")
-    day=$day_regex_match
+    day=$(echo "$day_regex_match" | sed 's/^0*//')
 else
     throw "day not set"
 fi
