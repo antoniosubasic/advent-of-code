@@ -233,6 +233,12 @@ case $mode in
 
         input_file_path="$(dirname $path)/input.txt"
         solution_file_path="$(dirname $path)/.solution.txt"
+        cookie_file_path="$config_path/cookie"
+
+        if [[ ! -f "$cookie_file_path" ]]; then
+            throw "cookie not set"
+        fi
+
         cookie=$(sed 's/\n$//' "$config_path/cookie")
 
         if [[ ! -f "$input_file_path" ]]; then
