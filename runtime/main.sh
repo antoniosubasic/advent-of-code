@@ -226,7 +226,7 @@ else
 fi
 
 if [[ ! -d "$path" ]]; then
-    throw "path does not exist: $path"
+    throw "project does not exist: $path"
 fi
 
 case $mode in
