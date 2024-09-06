@@ -225,12 +225,12 @@ else
     throw "language not set"
 fi
 
-if [[ ! -d "$path" ]]; then
-    throw "project does not exist: $path"
-fi
-
 case $mode in
     run)
+        if [[ ! -d "$path" ]]; then
+            throw "project does not exist"
+        fi
+
         input_file_path="$(dirname $path)/input.txt"
         solution_file_path="$(dirname $path)/.solution.txt"
         cookie=$(sed 's/\n$//' "$config_path/cookie")
@@ -297,6 +297,37 @@ case $mode in
             echo -e "${part2_color}$part2${NC}"
             echo -e "\n$(echo "$command_output" | tail -n 3 | head -n 1 | cut -d ' ' -f 2)s"
         fi
+        ;;
+    init)
+        if [[ -d "$path" ]]; then
+            throw "project already exists"
+        fi
+
+        base_file="$config_path/base.$language"
+
+        case $language in
+            csharp)
+                mkdir -p "$path"
+                dotnet new console -o "$path"
+                cp "$base_file" "$path/Program.cs"
+                ;;
+            python)
+                mkdir -p "$path"
+                cp "$base_file" "$path/main.py"
+                ;;
+            rust)
+                mkdir -p "$(dirname "$path")"
+                cargo new "$path" --bin
+                cp "$base_file" "$path/src/main.rs"
+                ;;
+            c)
+                mkdir -p "$path"
+                cp "$base_file" "$path/main.c"
+                ;;
+            *)
+                throw "invalid language: $language"
+                ;;
+        esac
         ;;
     *)
         throw "invalid mode: $mode"
