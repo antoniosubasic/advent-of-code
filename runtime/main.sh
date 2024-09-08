@@ -169,9 +169,25 @@ fi
 path_pattern=$(sed "s|^~|$HOME|" "$config_path/path")
 path_pattern="${path_pattern%/}"
 
-path_regex=$(echo "$path_pattern" | \
-    # escape slashes
-    sed 's/\//\\\//g' | \
+path_pattern_regex=$(echo "$path_pattern" | sed 's/\//\\\//g')
+
+year_regex=$(echo "$path_pattern_regex" | \
+    # strip everything after {year}
+    sed 's/\(.*{year}\).*/\1/' | \
+    # replace {year} with 4-digit number regex group
+    sed 's/{year}/([0-9]\{4\})/')
+
+day_regex=$(echo "$path_pattern_regex" | \
+    # strip everything after {day:n}
+    sed -E 's/(.*\{day(:[0-9]*)?\}).*/\1/' | \
+    # replace {year} with 4-digit number regex group
+    sed 's/{year}/([0-9]\{4\})/' | \
+    # replace {day:n} with a n-digit padded number regex group
+    sed -E 's/\{day:([0-9]+)\}/([0-9]\{\1\})/' | \
+    # replace {day} with 1 or 2-digit number regex group
+    sed 's/{day}/([0-9]{1,2})/')
+
+language_regex=$(echo "$path_pattern_regex" | \
     # replace {year} with 4-digit number regex group
     sed 's/{year}/([0-9]\{4\})/' | \
     # replace {day:n} with a n-digit padded number regex group
@@ -181,14 +197,18 @@ path_regex=$(echo "$path_pattern" | \
     # replace {language} with characters regex group
     sed 's/{language}/([a-zA-Z]+)/')
 
-path_regex_matches=0
 year_regex_match=""
-day_regex_match=""
-language_regex_match=""
-if [[ "$PWD/" =~ $path_regex ]]; then
-    path_regex_matches=1
+if [[ "$PWD" =~ $year_regex ]]; then
     year_regex_match="${BASH_REMATCH[1]}"
+fi
+
+day_regex_match=""
+if [[ "$PWD" =~ $day_regex ]]; then
     day_regex_match="${BASH_REMATCH[2]}"
+fi
+
+language_regex_match=""
+if [[ "$PWD" =~ $language_regex ]]; then
     language_regex_match="${BASH_REMATCH[3]}"
 fi
 
@@ -196,7 +216,7 @@ path="$path_pattern"
 
 if [[ "$year" != "" ]]; then
     path=${path/\{year\}/$year}
-elif [[ $path_regex_matches -eq 1 ]]; then
+elif [[ "$year_regex_match" != "" ]]; then
     path=${path/\{year\}/$year_regex_match}
     year=$(echo "$year_regex_match" | sed 's/^0*//')
 else
@@ -210,7 +230,7 @@ if [[ "$day" != "" ]]; then
     else
         path=${path/\{day\}/$day}
     fi
-elif [[ $path_regex_matches -eq 1 ]]; then
+elif [[ "$day_regex_match" != "" ]]; then
     path=$(echo "$path" | sed -E "s/\{day(:[0-9]+)?\}/$day_regex_match/")
     day=$(echo "$day_regex_match" | sed 's/^0*//')
 else
@@ -219,7 +239,7 @@ fi
 
 if [[ "$language" != "" ]]; then
     path=${path/\{language\}/$language}
-elif [[ $path_regex_matches -eq 1 ]]; then
+elif [[ "$language_regex_match" != "" ]]; then
     path=${path/\{language\}/$language_regex_match}
     language=$language_regex_match
 else
