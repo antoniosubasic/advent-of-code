@@ -262,6 +262,7 @@ if [[ ! -f "$input_file_path" ]]; then
         if [[ "$input" == "Puzzle inputs differ by user.  Please log in to get your puzzle input." ]]; then
             throw "invalid cookie"
         else
+            mkdir -p "$(dirname "$input_file_path")"
             echo -n "$input" > "$input_file_path"
         fi
     fi
@@ -330,6 +331,12 @@ case $mode in
         fi
 
         base_file="$config_path/base.$language"
+        
+        base_file_oneline="$base_file.oneline"
+        lines=$(wc -l < "$input_file_path")
+        if [[ $lines -le 1 && -f "$base_file_oneline" ]]; then
+            base_file="$base_file_oneline"
+        fi
 
         case $language in
             csharp)
