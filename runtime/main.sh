@@ -246,35 +246,34 @@ else
     throw "language not set"
 fi
 
+if [[ ! -f "$config_path/cookie" ]]; then
+    throw "cookie not set"
+fi
+
+input_file_path="$(dirname $path)/input.txt"
+cookie=$(sed 's/\n$//' "$config_path/cookie")
+
+if [[ ! -f "$input_file_path" ]]; then
+    if [[ "$cookie" == "" ]]; then
+        throw "cookie not set"
+    else
+        input=$(fetch_input "$year" "$day" "$cookie")
+
+        if [[ "$input" == "Puzzle inputs differ by user.  Please log in to get your puzzle input." ]]; then
+            throw "invalid cookie"
+        else
+            echo -n "$input" > "$input_file_path"
+        fi
+    fi
+fi
+
 case $mode in
     run)
         if [[ ! -d "$path" ]]; then
             throw "project does not exist"
         fi
 
-        input_file_path="$(dirname $path)/input.txt"
         solution_file_path="$(dirname $path)/.solution.txt"
-        cookie_file_path="$config_path/cookie"
-
-        if [[ ! -f "$cookie_file_path" ]]; then
-            throw "cookie not set"
-        fi
-
-        cookie=$(sed 's/\n$//' "$config_path/cookie")
-
-        if [[ ! -f "$input_file_path" ]]; then
-            if [[ "$cookie" == "" ]]; then
-                throw "cookie not set"
-            else
-                input=$(fetch_input "$year" "$day" "$cookie")
-
-                if [[ "$input" == "Puzzle inputs differ by user.  Please log in to get your puzzle input." ]]; then
-                    throw "invalid cookie"
-                else
-                    echo -n "$input" > "$input_file_path"
-                fi
-            fi
-        fi
 
         command_output=""
         status=0
