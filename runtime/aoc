@@ -39,7 +39,7 @@ submit_answer() {
     elif [[ "$response" =~ "You don't seem to be solving the right level" ]]; then
         local day_response=$(curl -s -H "Cookie: session=${cookie}" "https://adventofcode.com/${year}/day/${day}")
         local correct_answer=$(echo "$day_response" | grep -oP '<p>Your puzzle answer was <code>\K(.*?)(?=</code>)' | sed -n "${part}p")
-        [[ "$correct_answer" -eq "$answer" ]]
+        [[ "$correct_answer" == "$answer" ]]
         return $?
     elif [[ "$response" =~ "You gave an answer too recently" ]]; then
         local cooldown_time=$(echo "$response" | grep -oP 'You have \K(.*?)(?= left to wait)')
