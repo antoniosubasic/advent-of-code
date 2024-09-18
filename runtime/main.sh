@@ -334,7 +334,7 @@ case $mode in
         
         base_file_oneline="$base_file.oneline"
         lines=$(wc -l < "$input_file_path")
-        if [[ $lines -le 1 && -f "$base_file_oneline" ]]; then
+        if [[ $lines -lt 1 && -f "$base_file_oneline" ]]; then
             base_file="$base_file_oneline"
         fi
 
