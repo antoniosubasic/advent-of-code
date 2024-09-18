@@ -11,6 +11,8 @@ def part1(input):
         if input[i] == 1: input[input[i + 3]] = operand1 + operand2
         elif input[i] == 2: input[input[i + 3]] = operand1 * operand2
 
+        print(input)
+
     return input[0]
 
 def part2(input):
