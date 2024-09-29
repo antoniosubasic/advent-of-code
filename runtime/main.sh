@@ -291,7 +291,8 @@ case $mode in
                 ;;
             rust)
                 cargo build --release --quiet
-                command_output=$( { time -p cargo run --release --quiet; } 2>&1 )
+                binary_path=$(cargo metadata --format-version=1 | jq -r '.target_directory')/release/$(basename "$path")
+                command_output=$( { time -p "$binary_path"; } 2>&1 )
                 status=$?
                 ;;
             c)
