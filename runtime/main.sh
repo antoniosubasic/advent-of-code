@@ -214,11 +214,22 @@ fi
 
 path="$path_pattern"
 
+current_month=$(date +%m)
+current_day=$(date +%d)
+
+if [[ "$current_month" == "12" && "$current_day" -ge 1 && "$current_day" -le 25 ]]; then
+    detected_year="$(date +%Y)"
+    detected_day="$current_day"
+fi
+
 if [[ "$year" != "" ]]; then
     path=${path/\{year\}/$year}
 elif [[ "$year_regex_match" != "" ]]; then
     path=${path/\{year\}/$year_regex_match}
     year=$(echo "$year_regex_match" | sed 's/^0*//')
+elif [[ "$detected_year" != "" ]]; then
+    path=${path/\{year\}/$detected_year}
+    year=$detected_year
 else
     throw "year not set"
 fi
@@ -233,6 +244,17 @@ if [[ "$day" != "" ]]; then
 elif [[ "$day_regex_match" != "" ]]; then
     path=$(echo "$path" | sed -E "s/\{day(:[0-9]+)?\}/$day_regex_match/")
     day=$(echo "$day_regex_match" | sed 's/^0*//')
+elif [[ "$detected_day" != "" ]]; then
+    day=$detected_day
+    if [[ "${day:0:1}" == "0" ]]; then
+        day=${day:1}
+    fi
+    if [[ "$path" =~ \{day:([0-9]+)\} ]]; then
+        day_length="${BASH_REMATCH[1]}"
+        path=${path/\{day:$day_length\}/$(printf "%0${day_length}d" $day)}
+    else
+        path=${path/\{day\}/$day}
+    fi
 else
     throw "day not set"
 fi
