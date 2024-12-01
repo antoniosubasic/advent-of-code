@@ -265,7 +265,17 @@ elif [[ "$language_regex_match" != "" ]]; then
     path=${path/\{language\}/$language_regex_match}
     language=$language_regex_match
 else
-    throw "language not set"
+    if [[ -d "$path" ]]; then
+        subpath=$(echo "$path" | sed "s|{language}.*||")
+        if [[ $(find "$subpath" -mindepth 1 -maxdepth 1 -type d | wc -l) -eq 1 ]]; then
+            language=$(find "$subpath" -mindepth 1 -maxdepth 1 -type d -printf "%f")
+            path=${path/\{language\}/$language}
+        else
+            throw "language not set - possibilities: $(find "$subpath" -mindepth 1 -maxdepth 1 -type d -printf "%f " | sed 's/ $//')"
+        fi
+    else
+        throw "language not set"
+    fi
 fi
 
 if [[ ! -f "$config_path/cookie" ]]; then
