@@ -259,6 +259,11 @@ else
     throw "day not set"
 fi
 
+if [[ "$mode" == "url" ]]; then
+    echo "https://adventofcode.com/$year/day/$day"
+    exit 0
+fi
+
 if [[ "$language" != "" ]]; then
     path=${path/\{language\}/$language}
 elif [[ "$language_regex_match" != "" ]]; then
