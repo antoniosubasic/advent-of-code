@@ -270,8 +270,8 @@ elif [[ "$language_regex_match" != "" ]]; then
     path=${path/\{language\}/$language_regex_match}
     language=$language_regex_match
 else
-    if [[ -d "$path" ]]; then
-        subpath=$(echo "$path" | sed "s|{language}.*||")
+    subpath=$(echo "$path" | sed "s|{language}.*||")
+    if [[ -d "$subpath" ]]; then
         if [[ $(find "$subpath" -mindepth 1 -maxdepth 1 -type d | wc -l) -eq 1 ]]; then
             language=$(find "$subpath" -mindepth 1 -maxdepth 1 -type d -printf "%f")
             path=${path/\{language\}/$language}
