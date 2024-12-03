@@ -37,15 +37,12 @@ fn main() {
         .map(|line| line.split(' ').map(|num| num.parse().unwrap()).collect())
         .collect();
 
-    println!(
-        "{}\n{}",
+    let count_reports = |removable| {
         input
             .iter()
-            .filter(|report| evaluate_report(report, false))
-            .count(),
-        input
-            .iter()
-            .filter(|report| evaluate_report(report, true))
+            .filter(|report| evaluate_report(report, removable))
             .count()
-    );
+    };
+
+    println!("{}\n{}", count_reports(false), count_reports(true));
 }
