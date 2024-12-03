@@ -1,15 +1,14 @@
 use std::{collections::HashMap, fs};
 
 fn main() {
-    let mut list1 = vec![];
-    let mut list2 = vec![];
-
-    for line in fs::read_to_string("../input.txt").unwrap().lines() {
-        let mut nums = line.split("   ").map(|num| num.parse::<i32>().unwrap());
-
-        list1.push(nums.next().unwrap());
-        list2.push(nums.next().unwrap());
-    }
+    let (mut list1, mut list2): (Vec<i32>, Vec<i32>) = fs::read_to_string("../input.txt")
+        .unwrap()
+        .lines()
+        .map(|line| {
+            let mut nums = line.split("   ").map(|num| num.parse::<i32>().unwrap());
+            (nums.next().unwrap(), nums.next().unwrap())
+        })
+        .unzip();
 
     list1.sort();
     list2.sort();
