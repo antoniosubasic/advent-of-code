@@ -1,3 +1,4 @@
+use rayon::prelude::*;
 use std::{
     collections::{HashMap, HashSet},
     fs,
@@ -86,26 +87,30 @@ fn solve(input: &Vec<Vec<char>>) -> Option<HashSet<Coordinate>> {
 
 fn main() {
     let input = fs::read_to_string("../input.txt").unwrap();
-    let mut input: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
+    let input: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
 
     let positions = solve(&input).unwrap();
 
     println!("{}", positions.len());
 
-    let mut obstructions = 0;
+    let obstructions = positions
+        .par_iter()
+        .filter_map(|position| {
+            let x = position.x as usize;
+            let y = position.y as usize;
 
-    for position in positions {
-        let x = position.x as usize;
-        let y = position.y as usize;
+            let mut input = input.clone();
 
-        if input[y][x] == '.' {
-            input[y][x] = '#';
-            if solve(&input).is_none() {
-                obstructions += 1;
+            if input[y][x] == '.' {
+                input[y][x] = '#';
+                if solve(&input).is_none() {
+                    return Some(());
+                }
             }
-            input[y][x] = '.';
-        }
-    }
+
+            None
+        })
+        .count();
 
     println!("{obstructions}");
 }
