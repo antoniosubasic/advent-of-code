@@ -283,6 +283,11 @@ else
     fi
 fi
 
+if [[ "$mode" == "path" ]]; then
+    echo "$path"
+    exit 0
+fi
+
 if [[ ! -f "$config_path/cookie" ]]; then
     throw "cookie not set"
 fi
