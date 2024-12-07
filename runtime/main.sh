@@ -283,10 +283,16 @@ else
     fi
 fi
 
-if [[ "$mode" == "path" ]]; then
-    echo "$path"
-    exit 0
-fi
+case $mode in
+    path)
+        echo "$path"
+        exit 0
+        ;;
+    code)
+        code "$path"
+        exit 0
+        ;;
+esac
 
 if [[ ! -f "$config_path/cookie" ]]; then
     throw "cookie not set"
