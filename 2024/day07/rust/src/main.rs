@@ -17,18 +17,28 @@ impl Operation {
     }
 }
 
-fn get_possible_results(operators: &Vec<u64>, operations: &Vec<Operation>) -> Vec<u64> {
+fn get_possible_results(
+    operators: &Vec<u64>,
+    allowed_operations: &Vec<Operation>,
+    expected_result: &u64,
+) -> Vec<u64> {
     let mut results = vec![];
 
-    for operation in operations {
+    for operation in allowed_operations {
         let result = operation.evaluate(operators[0], operators[1]);
 
-        if operators.len() == 2 {
-            results.push(result);
-        } else {
-            let mut new_operators = vec![result];
-            new_operators.extend_from_slice(&operators[2..]);
-            results.extend(get_possible_results(&new_operators, operations));
+        if result <= *expected_result {
+            if operators.len() == 2 {
+                results.push(result);
+            } else {
+                let mut new_operators = vec![result];
+                new_operators.extend_from_slice(&operators[2..]);
+                results.extend(get_possible_results(
+                    &new_operators,
+                    allowed_operations,
+                    expected_result,
+                ));
+            }
         }
     }
 
@@ -51,24 +61,26 @@ fn main() {
         })
         .collect();
 
+    let allowed_operations = (
+        &vec![Operation::Plus, Operation::Multiply],
+        &vec![Operation::Plus, Operation::Multiply, Operation::Concatenate],
+    );
+
     let (part1, part2) = input
         .par_iter()
-        .map(|equation| {
+        .map(|(expected_result, operators)| {
             let mut part1 = 0;
             let mut part2 = 0;
 
-            if get_possible_results(&equation.1, &vec![Operation::Plus, Operation::Multiply])
-                .contains(&equation.0)
+            if get_possible_results(operators, allowed_operations.0, expected_result)
+                .contains(expected_result)
             {
-                part1 += equation.0;
-                part2 += equation.0;
-            } else if get_possible_results(
-                &equation.1,
-                &vec![Operation::Plus, Operation::Multiply, Operation::Concatenate],
-            )
-            .contains(&equation.0)
+                part1 += expected_result;
+                part2 += expected_result;
+            } else if get_possible_results(operators, allowed_operations.1, expected_result)
+                .contains(expected_result)
             {
-                part2 += equation.0;
+                part2 += expected_result;
             }
 
             (part1, part2)
