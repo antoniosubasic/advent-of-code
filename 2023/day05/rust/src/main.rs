@@ -1,124 +1,80 @@
-use std::fs::File;
-use std::io::{self, BufRead};
-use std::path::Path;
+use rayon::prelude::*;
+use std::fs;
 
-#[derive(Debug, Clone)]
-struct Input {
-    seeds: Vec<u32>,
-    maps: Vec<Vec<Range>>,
-}
-
-impl Input {
-    fn new(raw_input: Vec<String>) -> Input {
-        let seeds = raw_input[0]
-            .split(": ")
-            .nth(1)
-            .unwrap()
-            .split(' ')
-            .map(|s| s.parse::<u32>().unwrap())
-            .collect::<Vec<u32>>();
-
-        let maps = raw_input[2..]
-            .join("\n")
-            .split("\n\n")
-            .map(|map_item| {
-                map_item
-                    .split('\n')
-                    .skip(1)
-                    .map(|range| {
-                        Range::new(
-                            range
-                                .split(' ')
-                                .map(|range| range.parse::<u32>().unwrap())
-                                .collect::<Vec<u32>>(),
-                        )
-                    })
-                    .collect::<Vec<Range>>()
-            })
-            .collect::<Vec<Vec<Range>>>();
-
-        Input { seeds, maps }
-    }
-
-    fn get_index(&self, map_index: usize, index: u32) -> u32 {
-        for range in &self.maps[map_index] {
-            if index >= range.source_start && index < (range.source_start + range.length) {
-                return index - range.source_start + range.destination_start;
-            }
-        }
-
-        index
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 struct Range {
-    destination_start: u32,
-    source_start: u32,
-    length: u32,
+    dest: u32,
+    src: u32,
+    len: u32,
 }
 
 impl Range {
-    fn new(range: Vec<u32>) -> Range {
-        Range {
-            destination_start: range[0],
-            source_start: range[1],
-            length: range[2],
+    fn apply_to(&self, val: u32) -> Option<u32> {
+        if val >= self.src && val < self.src + self.len {
+            Some(self.dest + (val - self.src))
+        } else {
+            None
         }
     }
-}
-
-fn part1(input: &Input) -> u32 {
-    let mut lowest_location = 0;
-
-    for seed in &input.seeds {
-        let mut location_num = *seed;
-
-        for i in 0..input.maps.len() {
-            location_num = input.get_index(i, location_num);
-        }
-
-        if lowest_location == 0 || location_num < lowest_location {
-            lowest_location = location_num;
-        }
-    }
-
-    lowest_location
-}
-
-fn part2(input: &Input) -> u32 {
-    let mut lowest_location = 0;
-
-    for i in (0..input.seeds.len()).step_by(2) {
-        let seeds = (input.seeds[i]..(input.seeds[i] + input.seeds[i + 1])).collect::<Vec<u32>>();
-
-        for seed in &seeds {
-            let mut location_num = *seed;
-
-            for j in 0..input.maps.len() {
-                location_num = input.get_index(j, location_num);
-            }
-
-            if lowest_location == 0 || location_num < lowest_location {
-                lowest_location = location_num;
-            }
-        }
-    }
-
-    lowest_location
 }
 
 fn main() {
-    let path = Path::new("../input.txt");
-    let file = File::open(&path).expect("Couldn't open file");
-    let reader = io::BufReader::new(file);
-    let input = Input::new(
-        reader
-            .lines()
-            .map(|line| line.unwrap())
-            .collect::<Vec<String>>(),
-    );
+    let input = fs::read_to_string("../input.txt").unwrap();
+    let (seeds, maps) = input.split_once("\n\n").unwrap();
 
-    println!("{}", part1(&input));
-    println!("{}", part2(&input));
+    let seeds: Vec<u32> = seeds
+        .split_whitespace()
+        .skip(1)
+        .map(|seed| seed.parse().unwrap())
+        .collect();
+
+    let maps: Vec<Vec<Range>> = maps
+        .split("\n\n")
+        .map(|map| {
+            map.lines()
+                .skip(1)
+                .map(|line| {
+                    let mut split = line.split_whitespace();
+                    Range {
+                        dest: split.next().unwrap().parse().unwrap(),
+                        src: split.next().unwrap().parse().unwrap(),
+                        len: split.next().unwrap().parse().unwrap(),
+                    }
+                })
+                .collect()
+        })
+        .collect();
+
+    let transform_seed = |seed: &u32| {
+        let mut seed = *seed;
+
+        for map in &maps {
+            for range in map {
+                if let Some(val) = range.apply_to(seed) {
+                    seed = val;
+                    break;
+                }
+            }
+        }
+
+        seed
+    };
+
+    println!(
+        "{}\n{}",
+        seeds
+            .par_iter()
+            .map(|seed| transform_seed(seed))
+            .min()
+            .unwrap(),
+        seeds
+            .par_chunks(2)
+            .map(|seeds| (seeds[0]..seeds[0] + seeds[1])
+                .into_par_iter()
+                .map(|seed| transform_seed(&seed))
+                .min()
+                .unwrap())
+            .min()
+            .unwrap()
+    );
 }
