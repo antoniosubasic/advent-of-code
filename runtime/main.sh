@@ -215,7 +215,7 @@ fi
 path="$path_pattern"
 
 current_month=$(date +%m)
-current_day=$(date +%d)
+current_day=$(date +%d | sed 's/^0*//')
 
 if [[ "$current_month" == "12" && "$current_day" -ge 1 && "$current_day" -le 25 ]]; then
     detected_year="$(date +%Y)"
