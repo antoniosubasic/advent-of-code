@@ -145,7 +145,7 @@ while getopts ":y:d:l:" opt; do
             if [[ "$language" != "" ]]; then
                 throw "language already set"
             fi
-            languages=("csharp" "python" "rust" "c")
+            languages=("csharp" "python" "rust" "c" "java")
             if [[ ! " ${languages[@]} " =~ " $OPTARG " ]]; then
                 throw "invalid language: $OPTARG"
             fi
@@ -347,6 +347,11 @@ case $mode in
                 outfile=$(mktemp)
                 gcc main.c -o "$outfile"
                 command_output=$( { time -p "$outfile"; } 2>&1 )
+                status=$?
+                ;;
+            java)
+                javac -d bin src/*.java
+                command_output=$( { time -p java -cp bin Main; } 2>&1 )
                 status=$?
                 ;;
             *)
